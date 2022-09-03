@@ -25,5 +25,7 @@ Now, you can run `write_waves.py` to generate the wavetables. The `write_waves` 
 A file in the the `wavetables` directory needs to implement the `generate_waves` function and return a list of waves. The `generate_waves` function is passed `wave_size` and `table_size` as arguments, this way you can render waves at the best resolution and dynamically create waves to fill the table.
 
 ## Installation:
-On a Mac M1 you may need this hack for locating the 'sndfile' library:
+Run `pip install -r requirements.txt`
+
+On an Mac M1 you may need this hack for locating the 'sndfile' library:
 https://github.com/bastibe/python-soundfile/pull/322

@@ -1,16 +1,18 @@
 from osc_gen import sig
 from osc_gen import dsp
+from lib.gen import ShapeGen
 
 def generate_waves(wave_size, table_size):
   # Create a signal generator.
   sg = sig.SigGen(num_points=wave_size)
 
+  shapes = ShapeGen(num_points=wave_size)
+
   waves = []
-  # Morph between basic shapes:
-  waves += (sg.tri(), sg.sin(), sg.saw())
+  # Basic shapes:
+  waves += (sg.tri(), sg.sin(), sg.saw(), sg.sqr(), shapes.zig_zag())
   # Morph between square saw:
-  waves += (sg.sqr_saw(p) for p in (i / 5. for i in reversed(range(1, 5))))
-  waves += [sg.sqr()]
+  waves += (sg.sqr_saw(p) for p in (i / 4. for i in reversed(range(1, 4))))
   # Morph between exp sine degrees:
   waves += (sg.exp_sin(i) for i in range(1, 9))
   # Morph PWM

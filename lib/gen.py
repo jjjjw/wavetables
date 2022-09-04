@@ -70,6 +70,7 @@ class AdditiveGen(object):
     self.even_comb = None
 
   def handle_harmonic(self, harmonic, decay, perc, comb, comb_perc):
+    """Get the amplitude of the harmonic partial"""
     amp = (self.tilt / (harmonic ** decay)) * perc
 
     if comb and comb_perc:
@@ -137,6 +138,15 @@ class AdditiveGen(object):
     self.cached_wave = dsp.normalize(outp)      
     return self.cached_wave
 
+class AdditiveGenCallback(AdditiveGen):
+  """Create partials from a callback function"""
+  def __init__(self, callback=None, **kwargs):
+    AdditiveGen.__init__(self, **kwargs)
+    self.callback = callback
+
+  def handle_harmonic(self, *args):
+    return self.callback(self, *args)
+
 class Harmonics(sig.SigGen):
   """Simple odd/even/all harmonics"""
   def __init__(self, **kwargs):
@@ -164,3 +174,13 @@ class SimpleFM(sig.SigGen):
     modulator = sig.SigGen(num_points=self.num_points, harmonic=ratio)
 
     return np.cos(carrier.sin() + (depth * modulator.sin()))
+
+class ShapeGen(sig.SigGen):
+  """Extended SigGen for custom shapes"""
+  def zig_zag(self):
+    phasor = self.saw()
+
+    mid = len(phasor) // 2
+
+    # Flip the 2nd half of the phasor
+    return np.concatenate((phasor[:mid], np.flip(phasor[mid:])))

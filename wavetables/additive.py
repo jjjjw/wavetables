@@ -1,15 +1,6 @@
 from osc_gen import sig
 from osc_gen import dsp
-from lib.gen import AdditiveGen
-
-
-class AdditiveGenCallback(AdditiveGen):
-  def __init__(self, callback=None, **kwargs):
-    AdditiveGen.__init__(self, **kwargs)
-    self.callback = callback
-
-  def handle_harmonic(self, harmonic, *args):
-    return self.callback(harmonic)
+from lib.gen import AdditiveGenCallback
 
 def generate_waves(wave_size, table_size):
   waves = []

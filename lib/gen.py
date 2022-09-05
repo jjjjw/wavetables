@@ -175,6 +175,18 @@ class SimpleFM(sig.SigGen):
 
     return np.cos(carrier.sin() + (depth * modulator.sin()))
 
+  def self_fm(self, depth=10):
+    return np.cos(self.sin() + (depth * self.sin()))
+
+def splice(a, b, mix=0.5):
+  """Concatenate waves at an arbitrary sample"""
+  pivot = int(len(a) * mix)
+  return np.concatenate((a[:pivot], b[pivot:-1]))
+
+def graft(a, b, symmetry=0):
+  """Conjoin the negative portion of a a wave with the postive portion of another """
+  return np.where((a < symmetry) & (a >= symmetry - 1), a, b)
+
 def biased_invert(inp, symmetry=0):
   """Invert half of a wave"""
   samples = np.sort(np.extract((inp < symmetry) & (inp >= symmetry - 1), inp))
@@ -194,4 +206,3 @@ class ShapeGen(sig.SigGen):
   """Extended SigGen for custom shapes"""
   def zig_zag(self):
     return biased_invert(self.saw())
-

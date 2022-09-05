@@ -175,12 +175,23 @@ class SimpleFM(sig.SigGen):
 
     return np.cos(carrier.sin() + (depth * modulator.sin()))
 
+def biased_invert(inp, symmetry=0):
+  """Invert half of a wave"""
+  samples = np.sort(np.extract((inp < symmetry) & (inp >= symmetry - 1), inp))
+  bias = samples[-1] - samples[0]
+  return np.where((inp < symmetry) & (inp >= symmetry - 1), -1 * inp - bias, inp)
+
+def biased_flip(inp, symmetry=0):
+  """Flip half of a wave"""
+  samples = np.where((inp < symmetry) & (inp >= symmetry - 1))[0]
+  flipped = np.flip(samples)
+  output = np.copy(inp)
+  for ii, yy in enumerate(samples):
+    output[yy] = inp[flipped[ii]]
+  return output
+
 class ShapeGen(sig.SigGen):
   """Extended SigGen for custom shapes"""
   def zig_zag(self):
-    phasor = self.saw()
+    return biased_invert(self.saw())
 
-    mid = len(phasor) // 2
-
-    # Flip the 2nd half of the phasor
-    return np.concatenate((phasor[:mid], np.flip(phasor[mid:])))

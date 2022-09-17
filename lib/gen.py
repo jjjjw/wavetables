@@ -39,7 +39,6 @@ class AdditiveGen(object):
     self.samples = num_points
     self.partials = int(self.samples / 2)
 
-    self.sg = sig.SigGen(num_points=self.samples)
     self.cached_wave = None
 
     self.fundament_perc =  fundament_perc
@@ -72,9 +71,10 @@ class AdditiveGen(object):
   def handle_harmonic(self, harmonic, decay, perc, comb, comb_perc):
     """Get the amplitude of the harmonic partial"""
     amp = (self.tilt / (harmonic ** decay)) * perc
+    phase = 0
 
     if comb and comb_perc:
-      amp = amp * -1 * comb_perc
+      phase = np.radians(360) * comb_perc
 
     if self.notch_start and self.notch_width and self.notch_depth:
       # Filter all harmonics in the notch by the depth amount
@@ -86,19 +86,19 @@ class AdditiveGen(object):
       if harmonic <= self.bandpass_start or harmonic > self.bandpass_start + self.bandpass_width:
         amp = amp - (amp * self.bandpass_depth)
 
-    return amp
+    return amp, phase
 
   def handle_odd(self, harmonic):
-    amp = self.handle_harmonic(harmonic, self.odd_decay, self.odd_perc, self.odd_comb, self.odd_comb_perc)
+    amp, phase = self.handle_harmonic(harmonic, self.odd_decay, self.odd_perc, self.odd_comb, self.odd_comb_perc)
     if self.odd_comb is not None:
       self.odd_comb = not self.odd_comb
-    return amp
+    return amp, phase
 
   def handle_even(self, harmonic):
-    amp = self.handle_harmonic(harmonic, self.even_decay, self.even_perc, self.even_comb, self.even_comb_perc)
+    amp, phase = self.handle_harmonic(harmonic, self.even_decay, self.even_perc, self.even_comb, self.even_comb_perc)
     if self.even_comb is not None:
       self.even_comb = not self.even_comb
-    return amp
+    return amp, phase
 
   def wave(self):
     if self.cached_wave is not None:
@@ -123,17 +123,22 @@ class AdditiveGen(object):
       if harmonic == 1:
         # Fundamental
         amp = 1 * self.fundament_perc
+        phase = 0
 
       elif harmonic % 2:
-        amp = self.handle_odd(harmonic)
+        amp, phase = self.handle_odd(harmonic)
 
       elif not harmonic % 2:
-        amp = self.handle_even(harmonic)
+        amp, phase = self.handle_even(harmonic)
 
-      # Add amp to output
-      self.sg.harmonic = partial
-      self.sg.amp = amp
-      outp += self.sg.sin()
+      # Add to output
+      sg = sig.SigGen(
+        num_points=self.samples,
+        amp=amp,
+        harmonic=partial,
+        phase=phase
+      )
+      outp += sg.sin()
 
     self.cached_wave = dsp.normalize(outp)      
     return self.cached_wave
